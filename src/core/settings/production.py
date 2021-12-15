@@ -18,7 +18,8 @@ conn=psycopg2.connect(
   database="eco",
   user="postgres",
   host="/tmp/",
-  password="postgres"
+  password="postgres",
+  port="5432",
 )
 
 DEFAULT_CONNECTION.update({"CONN_MAX_AGE": 600})
