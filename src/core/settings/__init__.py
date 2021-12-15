@@ -125,3 +125,5 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME':timedelta(days=1),
 }
+
+DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}
