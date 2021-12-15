@@ -24,10 +24,6 @@ conn=psycopg2.connect(
 
 DEFAULT_CONNECTION.update({"CONN_MAX_AGE": 600})
 DATABASES = {"default": DEFAULT_CONNECTION}
-ALLOWED_HOSTS = [
-    '0.0.0.0'
-    'ecofarmtask.herokuapp.com',
-    '127.0.0.1'
-]
+ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS',[])
