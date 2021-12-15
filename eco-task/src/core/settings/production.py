@@ -10,7 +10,9 @@ DEBUG = os.environ.get('DEBUG', 'true').lower() == "true"
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 
-DEFAULT_CONNECTION = dj_database_url.parse(os.environ.get(os.environ.get("DATABASE_URL_CONFIG")))
+#DEFAULT_CONNECTION = dj_database_url.parse(os.environ.get(os.environ.get("DATABASE_URL_CONFIG")))
+DEFAULT_CONNECTION = dj_database_url.parse(os.environ.get("DATABASE_URL"))
+
 DEFAULT_CONNECTION.update({"CONN_MAX_AGE": 600})
 DATABASES = {"default": DEFAULT_CONNECTION}
 ALLOWED_HOSTS = ['*']
