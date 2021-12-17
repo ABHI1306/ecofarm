@@ -69,4 +69,4 @@ docs/_build/
 target/
 
 # Local settings file
-eco-task/src/*/settings/local.py
+src/*/settings/local.py
