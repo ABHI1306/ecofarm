@@ -96,8 +96,6 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
-CELERY_TIMEZONE = 'Asia/Kolkata'
-
 USE_I18N = True
 
 USE_L10N = True
@@ -126,7 +124,3 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME':timedelta(days=1),
 }
-
-DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}
-
-DATABASES['default'] =  dj_database_url.config()

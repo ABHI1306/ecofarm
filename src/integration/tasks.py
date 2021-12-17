@@ -1,21 +1,15 @@
 from __future__ import absolute_import, unicode_literals
-from celery import shared_task
 import requests
-from datetime import datetime
 from integration.models import Integration
 from bulk_update.helper import bulk_update
 from core import celery_app
 from rest_framework.response import Response
-import os
 from dateutil import parser
-
-os.environ[ 'DJANGO_SETTINGS_MODULE' ] = "core.settings"
 
 @celery_app.task
 def get_data_from_url():
     url = 'https://as-cdt-pub-vip-cannabis-ww-p-002.azurewebsites.net/licenses/filteredSearch?pageSize=&pageNumber='
     totalPages = requests.get(url).json()["metadata"]["totalPages"]
-    qs = Integration.objects.all()
     for page in range(1,totalPages+1):
         res = requests.get(url + str(page))
         insert_list = []

@@ -45,6 +45,7 @@ class UserViewSet(viewsets.GenericViewSet):
         return Response({'Message': "Your credentials are not valid"},
                         status=status.HTTP_400_BAD_REQUEST)
 
+    
 class ForgotPassword(viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer

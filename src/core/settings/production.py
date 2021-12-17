@@ -9,7 +9,7 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'true').lower() == "true"
 
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
+#CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 
 #DEFAULT_CONNECTION = dj_database_url.parse(os.environ.get(os.environ.get("DATABASE_URL_CONFIG")))
 DEFAULT_CONNECTION = dj_database_url.parse(os.environ.get("DATABASE_URL"))
@@ -27,3 +27,4 @@ DATABASES = {"default": DEFAULT_CONNECTION}
 ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS',[])
+CELERY_BROKER_URL = os.environ.get('REDIS_URL') 
