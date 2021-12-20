@@ -34,11 +34,15 @@ include/
 .installed.cfg
 *.egg
 
+# Local settings file
+src/*/settings/local.py
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+
 
 # Installer logs
 pip-log.txt
@@ -53,7 +57,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*,cover
+*.cover
 
 # Translations
 *.mo
@@ -68,5 +72,3 @@ docs/_build/
 # PyBuilder
 target/
 
-# Local settings file
-src/*/settings/local.py
