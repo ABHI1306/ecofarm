@@ -14,13 +14,13 @@ DEBUG = os.environ.get('DEBUG', 'true').lower() == "true"
 #DEFAULT_CONNECTION = dj_database_url.parse(os.environ.get(os.environ.get("DATABASE_URL_CONFIG")))
 DEFAULT_CONNECTION = dj_database_url.parse(os.environ.get("DATABASE_URL"))
 
-conn=psycopg2.connect(
-  database="eco",
-  user="postgres",
-  host="/tmp/",
-  password="postgres",
-  port="5432",
-)
+# conn=psycopg2.connect(
+#   database="eco",
+#   user="postgres",
+#   host="/tmp/",
+#   password="postgres",
+#   port="5432",
+# )
 
 DEFAULT_CONNECTION.update({"CONN_MAX_AGE": 600})
 DATABASES = {"default": DEFAULT_CONNECTION}
