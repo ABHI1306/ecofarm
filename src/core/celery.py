@@ -11,7 +11,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'fetching_data' : {
         'task' : 'integration.tasks.get_data_from_url',
-        'schedule' : crontab(minute=4, hour=8),
+        'schedule' : crontab(minute=35, hour=13),
     }
 }
 
