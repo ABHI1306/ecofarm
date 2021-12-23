@@ -1,20 +1,18 @@
-from django.http.response import HttpResponse
 from user.models import User
 from rest_framework import viewsets
-from api.serializers.serializers import UserSerializer
+from api.serializers.serializers import IntegrationSerializer, UserSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
-import requests
 from datetime import datetime
 import time
 from cryptography.fernet import Fernet
 from django.core.mail import send_mail
 from integration.models import Integration
-from bulk_update.helper import bulk_update
+from django.contrib.auth.hashers import make_password, check_password
 
 key = Fernet.generate_key()
 fernet = Fernet(key)
@@ -22,6 +20,23 @@ fernet = Fernet(key)
 class UserViewSet(viewsets.GenericViewSet):
     serializer_class = UserSerializer
     permissions_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['POST'], url_path='signup')
+    def signup(self, request):
+        user_name = request.data.get('username', None)
+        pass_word = request.data.get('password', None)
+        mobile = request.data.get('mobile', None)
+        email = request.data.get('email', None)
+        if not(user_name and pass_word and mobile and email):
+            return Response({'Message': "Creadientials are not provied"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.create(username=user_name,password=make_password(pass_word),email=email,mobile=mobile)
+            return Response({'message': 'User created successfully.'})
+        except User.DoesNotExist:
+            pass
+        return Response({'Message': "Your credentials are not valid"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['POST'], url_path='login')
     def login(self, request):
@@ -45,7 +60,12 @@ class UserViewSet(viewsets.GenericViewSet):
         return Response({'Message': "Your credentials are not valid"},
                         status=status.HTTP_400_BAD_REQUEST)
 
-    
+    @action(detail=False, methods=['GET'], url_path='userme')
+    def get_queryset(self, request):
+        qs = User.objects.filter(id=request.user.id)
+        ser = UserSerializer(qs, many=True)
+        return Response(ser.data)
+
 class ForgotPassword(viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -97,53 +117,33 @@ class ForgotPassword(viewsets.GenericViewSet):
             pass
         return Response({'message': 'Invalid Token'},status=status.HTTP_400_BAD_REQUEST)
 
-class IntegrateData(viewsets.GenericViewSet):
+    @action(detail=False, methods=['POST'], url_path='reset_password')
+    def reset_password(self, request):
+        old_password = request.data.get('oldpassword', None)
+        new_password = request.data.get('newpassword', None)
+        re_password = request.data.get('repassword', None)
+        
+        user = request.user
+        if check_password(old_password,user.password):
+            if new_password == re_password:
+                user.password = make_password(new_password)
+                user.save()
+                return Response({'message': 'Password change successfully'})
+            return Response({'message': 'New Password and Confirm Password does not matched'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Old Password is not match'},
+                              status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['POST'], url_path='integrate')
-    def get_data_from_url(self, request):
-        url = 'https://as-cdt-pub-vip-cannabis-ww-p-002.azurewebsites.net/licenses/filteredSearch?pageSize=&pageNumber='
-        totalPages = requests.get(url).json()["metadata"]["totalPages"]
-        qs = Integration.objects.all()
-        for page in range(1,totalPages+1):
-            res = requests.get(url + str(page))
-            insert_list = []
-            update_list = []
-            for val in res.json()["data"]:
-                if Integration.objects.filter(licenseNumber=val['licenseNumber']).exists():
-                    print("In Update")
-                    update_list.append(Integration(dccnumber=val['id'],licenseStatus=val['licenseStatus'],
-                    licenseStatusDate=self.convert(val['licenseStatusDate']),licenseTerm=val['licenseTerm'],licenseType=val['licenseType'],
-                    licenseDesignation=val['licenseDesignation'],issueDate=self.convert(val['issueDate']),expirationDate=self.convert(val['expirationDate']),
-                    licensingAuthorityId=val['licensingAuthorityId'],licensingAuthority=val['licensingAuthority'],businessLegalName=val['businessLegalName'],
-                    businessDbaName=val['businessDbaName'],businessOwnerName=val['businessOwnerName'],businessStructure=val['businessStructure'],
-                    activity=val['activity'],premiseStreetAddress=val['premiseStreetAddress'],premiseCity=val['premiseCity'],
-                    premiseState=val['premiseState'],premiseCounty=val['premiseCounty'],premiseZipCode=val['premiseZipCode'],
-                    businessEmail=val['businessEmail'],businessPhone=val['businessPhone'],parcelNumber=val['parcelNumber'],
-                    premiseLatitude=val['premiseLatitude'],premiseLongitude=val['premiseLongitude'],dataRefreshedDate=self.convert_f(val['dataRefreshedDate'])))
-                else:
-                    print("In Insert")
-                    insert_list.append(Integration(dccnumber=val['id'],licenseNumber=val['licenseNumber'],licenseStatus=val['licenseStatus'],
-                    licenseStatusDate=self.convert(val['licenseStatusDate']),licenseTerm=val['licenseTerm'],licenseType=val['licenseType'],
-                    licenseDesignation=val['licenseDesignation'],issueDate=self.convert(val['issueDate']),expirationDate=self.convert(val['expirationDate']),
-                    licensingAuthorityId=val['licensingAuthorityId'],licensingAuthority=val['licensingAuthority'],businessLegalName=val['businessLegalName'],
-                    businessDbaName=val['businessDbaName'],businessOwnerName=val['businessOwnerName'],businessStructure=val['businessStructure'],
-                    activity=val['activity'],premiseStreetAddress=val['premiseStreetAddress'],premiseCity=val['premiseCity'],
-                    premiseState=val['premiseState'],premiseCounty=val['premiseCounty'],premiseZipCode=val['premiseZipCode'],
-                    businessEmail=val['businessEmail'],businessPhone=val['businessPhone'],parcelNumber=val['parcelNumber'],
-                    premiseLatitude=val['premiseLatitude'],premiseLongitude=val['premiseLongitude'],dataRefreshedDate=self.convert_f(val['dataRefreshedDate'])))
-            Integration.objects.bulk_create(insert_list)
-            bulk_update(update_list)
-            # Integration.objects.bulk_update(update_list, ['dccnumber','licenseNumber','licenseStatus','licenseStatusDate',
-            # 'licenseTerm','licenseType','licenseDesignation','issueDate','expirationDate','licensingAuthorityId','licensingAuthority',
-            # 'businessLegalName','businessDbaName','businessOwnerName','businessStructure','activity','premiseStreetAddress',
-            # 'premiseCity','premiseState','premiseCounty','premiseZipCode','businessEmail','businessPhone','parcelNumber',
-            # 'premiseLatitude','premiseLongitude','dataRefreshedDate'])
-        return Response({'message': 'Fetching Data is Done'})
-    
-    def convert(self, date_time_str):
-        if date_time_str:
-            return datetime.strptime(date_time_str, "%Y-%m-%dT%H:%M:%S")
+class IntegrateData(viewsets.ModelViewSet):
+    queryset = Integration.objects.all()
+    serializer_class = IntegrationSerializer
 
-    def convert_f(self, date_time_str):
-        if date_time_str:
-            return datetime.strptime(date_time_str, "%Y-%m-%dT%H:%M:%S.%f")
+    @action(detail=False, methods=['GET'], url_path='integrate')
+    def get_data(self, request):
+        legal_bussiness_name = request.query_params.get('legalBussinessName', None)
+        license_number = request.query_params.get('licenseNumber', None)
+        expiration_date = request.query_params.get('expirationDate', None)
+
+        integrate = Integration.objects.get(Q(business_legal_name=legal_bussiness_name)|Q(license_number=license_number)|Q(expiration_date=expiration_date))
+        ser = IntegrationSerializer(integrate, many=True)
+        return Response(ser.data)

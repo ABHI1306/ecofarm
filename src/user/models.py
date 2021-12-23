@@ -21,5 +21,6 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     mobile = models.CharField(max_length=15)
+    verification = models.BooleanField(default=False)
 
     REQUIRED_FIELDS = ['email', 'mobile']
