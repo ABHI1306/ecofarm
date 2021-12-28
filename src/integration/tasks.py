@@ -9,6 +9,8 @@ import bulk_update_or_create
 
 @celery_app.task
 def get_data_from_url():
+    """ Fetching data from (https://search.cannabis.ca.gov/results?searchQuery=) URL 
+        and Set up celery & adding async tasks to trigger periodic data save task for above fields. """
     url = 'https://as-cdt-pub-vip-cannabis-ww-p-002.azurewebsites.net/licenses/filteredSearch?pageSize=&pageNumber='
     totalPages = requests.get(url).json()["metadata"]["totalPages"]
     for page in range(1,totalPages+1):
@@ -22,7 +24,7 @@ def get_data_from_url():
                 license_designation=val['licenseDesignation'],issue_date=convert(val['issueDate']),expiration_date=convert(val['expirationDate']),
                 licensing_authority_id=val['licensingAuthorityId'],licensing_authority=val['licensingAuthority'],business_legal_name=val['businessLegalName'],
                 business_dba_name=val['businessDbaName'],business_owner_name=val['businessOwnerName'],business_structure=val['businessStructure'],
-                activity={val['activity']},premise_street_address=val['premiseStreetAddress'],premise_city=val['premiseCity'],
+                activity=sort_activity(val['activity']),premise_street_address=val['premiseStreetAddress'],premise_city=val['premiseCity'],
                 premise_state=val['premiseState'],premise_county=val['premiseCounty'],premise_zip_code=val['premiseZipCode'],
                 business_email=val['businessEmail'],business_phone=val['businessPhone'],parcel_number=val['parcelNumber'],
                 premise_latitude=val['premiseLatitude'],premise_longitude=val['premiseLongitude'],data_refreshed_date=convert(val['dataRefreshedDate'])))
@@ -32,7 +34,7 @@ def get_data_from_url():
                 license_designation=val['licenseDesignation'],issue_date=convert(val['issueDate']),expiration_date=convert(val['expirationDate']),
                 licensing_authority_id=val['licensingAuthorityId'],licensing_authority=val['licensingAuthority'],business_legal_name=val['businessLegalName'],
                 business_dba_name=val['businessDbaName'],business_owner_name=val['businessOwnerName'],business_structure=val['businessStructure'],
-                activity={val['activity']},premise_street_address=val['premiseStreetAddress'],premise_city=val['premiseCity'],
+                activity=sort_activity(val['activity']),premise_street_address=val['premiseStreetAddress'],premise_city=val['premiseCity'],
                 premise_state=val['premiseState'],premise_county=val['premiseCounty'],premise_zip_code=val['premiseZipCode'],
                 business_email=val['businessEmail'],business_phone=val['businessPhone'],parcel_number=val['parcelNumber'],
                 premise_latitude=val['premiseLatitude'],premise_longitude=val['premiseLongitude'],data_refreshed_date=convert(val['dataRefreshedDate'])))
@@ -44,3 +46,13 @@ def get_data_from_url():
 def convert(date_time_str):
     if date_time_str:
         return parser.parse(date_time_str)
+
+def sort_activity(activity):
+    res = []
+    if activity:
+        if activity == 'Data Not Available':
+            return ["N/A"]
+        for i in activity.split(","):
+            res.append(i.strip())
+        return res
+    return ["N/A"]

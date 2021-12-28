@@ -5,7 +5,7 @@ from integration.models import Integration
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'mobile', 'verification')
+        exclude = ['id','password','is_superuser','is_staff','date_joined','groups','user_permissions']
 
 class IntegrationSerializer(serializers.ModelSerializer):
     class Meta:

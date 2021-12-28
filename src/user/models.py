@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.utils.translation import gettext as _
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -20,6 +19,7 @@ class UserManager(BaseUserManager):
         return self.create_user(password, **extra_fields)
 
 class User(AbstractUser):
+    """ Extend the User property """
     mobile = models.CharField(max_length=15)
     verification = models.BooleanField(default=False)
 
