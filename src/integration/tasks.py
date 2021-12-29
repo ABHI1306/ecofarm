@@ -18,7 +18,7 @@ def get_data_from_url():
         insert_list = []
         update_list = []
         for val in res.json()["data"]:
-            if Integration.objects.filter(license_number=val['licenseNumber']).exists():
+            if Integration.objects.filter(license_number=val["licenseNumber"]).exists():
                 update_list.append(Integration(dcc_number=val['id'],license_status=val['licenseStatus'],
                 license_status_date=convert(val['licenseStatusDate']),license_term=val['licenseTerm'],license_type=val['licenseType'],
                 license_designation=val['licenseDesignation'],issue_date=convert(val['issueDate']),expiration_date=convert(val['expirationDate']),
