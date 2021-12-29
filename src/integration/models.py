@@ -18,7 +18,7 @@ class Integration(models.Model):
     licensing_authority_id = models.CharField(max_length=225,verbose_name="licensingAuthorityId", default=None)
     licensing_authority = models.CharField(max_length=225, verbose_name="licensingAuthority", default=None)
     business_legal_name = models.CharField(max_length=500, verbose_name="businessLegalName", default=None)
-    business_dba_name = models.CharField(max_length=500, verbose_name="businessDbaName", default=None)
+    business_dba_name = models.CharField(max_length=500, verbose_name="businessDbaName")
     business_owner_name = models.CharField(max_length=500, verbose_name="businessOwnerName", default=None)
     business_structure = models.CharField(max_length=225, verbose_name="businessStructure", default=None)
     activity = ArrayField(models.CharField(max_length=225),default=list)
