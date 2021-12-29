@@ -10,6 +10,8 @@ from django.db.models import Q
 from integration.models import Integration
 from .user_email import *
 from django.contrib.auth.hashers import check_password, make_password
+import jwt
+import datetime
 
 class UserViewSet(viewsets.GenericViewSet):
     """ Create ViewSet for performing User API """
@@ -52,10 +54,11 @@ class UserViewSet(viewsets.GenericViewSet):
                 user.is_active = True
                 user.save()
                 refresh = RefreshToken.for_user(user)
+                access = refresh.access_token
                 return Response({
                     'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                    'expires_in': str(refresh.lifetime),
+                    'access': str(access),
+                    'expires_in(SEC)': int(access.lifetime.total_seconds()),
                     'is_verify' : str(user.verification),
                     })
         except User.DoesNotExist:
