@@ -5,7 +5,8 @@ from bulk_update_or_create import BulkUpdateOrCreateQuerySet
 class Integration(models.Model):
     """ Creating Integration model license_number is unique field 
         and activity contain array fields """
-    
+    objects = BulkUpdateOrCreateQuerySet.as_manager()
+
     dcc_number = models.IntegerField(verbose_name="dccnumber")
     license_number = models.CharField(max_length=225, verbose_name="licenseNumber")
     license_status = models.CharField(max_length=225, verbose_name="licenseStatus")

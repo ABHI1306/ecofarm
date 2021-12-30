@@ -9,13 +9,12 @@ fernet = Fernet(key)
 @shared_task
 def send_activation_email(new_user, email, sub_, msg_):
     encoding = 'utf-8'
-    token_ = str(fernet.encrypt_at_time(str(new_user.id).encode(),current_time=int(time.time())), encoding)
+    token_ = str(fernet.encrypt_at_time((str(new_user.id) +"%"+sub_).encode(),current_time=int(time.time())), encoding)
     subject = sub_
     email_from = 'abhijitshete13@gmail.com'
     recipient_list = [email]
     message = f'{msg_}{token_}'
     send_mail(subject, message, email_from, recipient_list)
-    return token_
         
 def verify_email_by_token(tk):
     """ Getting token from request if token is valid then email verification is done otherwise verification is not done. """

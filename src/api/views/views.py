@@ -8,16 +8,15 @@ from rest_framework import viewsets, status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
 from integration.models import Integration
+from integration.paginations import StandardResultsSetPagination
 from .user_email import *
 from django.contrib.auth.hashers import check_password, make_password
-import jwt
-import datetime
+import django_filters
 
 class UserViewSet(viewsets.GenericViewSet):
     """ Create ViewSet for performing User API """
     serializer_class = UserSerializer
     permissions_classes = [IsAuthenticated]
-    token_ = ""
 
     @action(detail=False, methods=['POST'], url_path='signup')
     def signup(self, request):
@@ -31,8 +30,7 @@ class UserViewSet(viewsets.GenericViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         try:
             new_user = User.objects.create(username=user_name,password=make_password(pass_word),email=email,mobile=mobile,is_active=False)
-            UserViewSet.token_ = send_activation_email(new_user,email,sub_='Activate Account',msg_='Activate your account here://127.0.0.1:8000/api/user/verify_email/?verifytoken=')
-            print("yoyo = ",UserViewSet.token_)
+            send_activation_email(new_user,email,sub_='Activate Account',msg_='Activate your account here://127.0.0.1:8000/api/user/verify_email/?verifytoken=')
             return Response({'message': 'User created successfully.'})
         except User.DoesNotExist:
             pass
@@ -79,15 +77,15 @@ class UserViewSet(viewsets.GenericViewSet):
     def verify_email(self, request):
         """ Getting token from request if token is valid then email verification is done otherwise verification is not done. """
         verifytoken = request.query_params.get('verifytoken')
-        if UserViewSet.token_ == verifytoken:
+        try:
             tk = str.encode(verifytoken)
-            try:
-                user_id = verify_email_by_token(tk)
-                if User.objects.filter(id = user_id).exists():
-                    User.objects.filter(id = user_id).update(verification=True)
-                return Response({'message': 'Token is verify successfully.'})
-            except:
-                pass
+            user = verify_email_by_token(tk)
+            val = user.split("%")
+            if User.objects.filter(id = val[0]).exists() and val[1] == 'Activate Account':
+                User.objects.filter(id = val[0]).update(verification=True)
+            return Response({'message': 'Token is verify successfully.'})
+        except:
+            pass
         return Response({'message': 'Invalid Token'},status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['GET'], url_path='me')
@@ -102,18 +100,16 @@ class ForgotPassword(viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permissions_classes = [IsAuthenticated]
-    token__ = ""
 
     @action(detail=False, methods=['POST'], url_path='forgot_password')
     def forgot_password(self, request):
         """ In case User forgot password then getting token for updating new password. """
         email = request.data.get('email', None)
-        if not User.objects.filter(email=email).first():
-            return Response({'message': 'No User found with this Email.'})
-        
         user = User.objects.get(email = email)
+        if not user:
+            return Response({'message': 'No User found with this Email.'})
         try:
-            ForgotPassword.token__ = send_activation_email(user,email,sub_='Reset Password',msg_='Verify your account here //127.0.0.1:8000/api/forgotpassword/verify_email_forgot/?verifytoken=')
+            send_activation_email(user,email,sub_='Reset Password',msg_='Verify your account here //127.0.0.1:8000/api/forgotpassword/verify_email_forgot/?verifytoken=')
             return Response({'message': 'Email send successfully.'})
         except:
             pass
@@ -124,15 +120,15 @@ class ForgotPassword(viewsets.GenericViewSet):
     def verify_email_forgot(self, request):
         verifytoken = request.query_params.get('verifytoken')
         new_password = request.data.get('newpassword', None)
-        if ForgotPassword.token__ == verifytoken:
+        try:
             tk = str.encode(verifytoken)
-            try:
-                user_id = verify_email_by_token(tk)
-                if User.objects.filter(id = user_id).exists():
-                    User.objects.filter(id = user_id).update(password=make_password(new_password))
-                return Response({'message': 'Password change successfully.'})
-            except:
-                pass
+            user = verify_email_by_token(tk)
+            val = user.split("%")
+            if User.objects.filter(id = val[0]).exists() and val[1] == 'Reset Password':
+                User.objects.filter(id = val[0]).update(password=make_password(new_password))
+            return Response({'message': 'Password change successfully.'})
+        except:
+            pass
         return Response({'message': 'Invalid Token'},status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['POST'], url_path='reset_password')
@@ -141,7 +137,6 @@ class ForgotPassword(viewsets.GenericViewSet):
         old_password = request.data.get('oldpassword', None)
         new_password = request.data.get('newpassword', None)
         re_password = request.data.get('repassword', None)
-        
         user = request.user
         if check_password(old_password,user.password):
             if new_password == re_password:
@@ -153,17 +148,20 @@ class ForgotPassword(viewsets.GenericViewSet):
         return Response({'message': 'Old Password is not match'},
                               status=status.HTTP_400_BAD_REQUEST)
 
+class IntegrationFilter(django_filters.FilterSet):
+    """ Customize Filtering """
+    class Meta:
+        model = Integration
+        fields = {
+            'business_legal_name': ['exact', 'icontains'],
+            'license_number' : ['exact'],
+            'expiration_date' : ['exact'],
+        }
+
 class IntegrateData(viewsets.ModelViewSet):
     """ Create ViewSet for getting Integration Info. """
+    queryset = Integration.objects.all()
     serializer_class = IntegrationSerializer
-
-    @action(detail=False, methods=['GET'], url_path='integrate')
-    def retrive(self, request):
-        legal_bussiness_name = request.query_params.get('legalBussinessName', None)
-        license_number = request.query_params.get('licenseNumber', None)
-        expiration_date = request.query_params.get('expirationDate', None)
-
-        integrate = Integration.objects.filter(Q(business_legal_name=legal_bussiness_name)|Q(license_number=license_number)|Q(expiration_date=expiration_date))
-        ser = IntegrationSerializer(integrate, many=True)
-        return Response(ser.data)
+    pagination_class = StandardResultsSetPagination
+    filterset_class = IntegrationFilter
 

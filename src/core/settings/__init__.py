@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'bulk_update_or_create',
     'rangefilter',
     'import_export',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -122,7 +123,12 @@ AUTH_USER_MODEL = 'user.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'integration.paginations.StandardResultsSetPagination',
+    'PAGE_SIZE': 100,
 }
 
 SIMPLE_JWT = {
