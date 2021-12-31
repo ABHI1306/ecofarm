@@ -6,7 +6,6 @@ import time
 key = Fernet.generate_key()
 fernet = Fernet(key)
 
-@shared_task
 def send_activation_email(new_user, email, sub_, msg_):
     encoding = 'utf-8'
     token_ = str(fernet.encrypt_at_time((str(new_user.id) +"%"+sub_).encode(),current_time=int(time.time())), encoding)

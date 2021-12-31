@@ -34,3 +34,5 @@ class Integration(models.Model):
     premise_latitude = models.FloatField(verbose_name="premiseLatitude", default=None, null=True, blank=True)
     premise_longitude = models.FloatField(verbose_name="premiseLongitude", default=None, null=True, blank=True)
     data_refreshed_date = models.DateTimeField(verbose_name="dataRefreshedDate")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="createdOn")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="updatedOn")

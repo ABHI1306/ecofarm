@@ -27,7 +27,6 @@ def get_data_from_url():
                 'premise_latitude':val['premiseLatitude'],'premise_longitude':val['premiseLongitude'],'data_refreshed_date':convert(val['dataRefreshedDate'])}
             insert_list.append(Integration(**val_dict))
         Integration.objects.bulk_update_or_create(insert_list, list(val_dict.keys()), match_field='license_number')
-        print("page no =",page)
     return Response({'message': 'Fetching Data is Done'})
 
 def convert(date_time_str):
