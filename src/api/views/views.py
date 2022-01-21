@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
 from integration.models import Integration
 from integration.paginations import StandardResultsSetPagination
-from .user_email import *
+from .user_email import send_activation_email, verify_email_by_token
 from django.contrib.auth.hashers import check_password, make_password
 import django_filters
 
@@ -29,8 +29,8 @@ class UserViewSet(viewsets.GenericViewSet):
             return Response({'Message': "Creadientials are not provied"},
                             status=status.HTTP_400_BAD_REQUEST)
         try:
-            new_user = User.objects.create(username=user_name,password=make_password(pass_word),email=email,mobile=mobile,is_active=False)
-            send_activation_email(new_user,email,sub_='Activate Account',msg_='Activate your account here://127.0.0.1:8000/api/user/verify_email/?verifytoken=')
+            User.objects.create(username=user_name,password=make_password(pass_word),email=email,mobile=mobile,is_active=False)
+            send_activation_email(email,sub_='Activate Account',msg_='Activate your account here://127.0.0.1:8000/api/user/verify_email/?verifytoken=')
             return Response({'message': 'User created successfully.'})
         except User.DoesNotExist:
             pass
@@ -109,7 +109,7 @@ class ForgotPassword(viewsets.GenericViewSet):
         if not user:
             return Response({'message': 'No User found with this Email.'})
         try:
-            send_activation_email(user,email,sub_='Reset Password',msg_='Verify your account here //127.0.0.1:8000/api/forgotpassword/verify_email_forgot/?verifytoken=')
+            send_activation_email(email,sub_='Reset Password',msg_='Verify your account here //127.0.0.1:8000/api/forgotpassword/verify_email_forgot/?verifytoken=')
             return Response({'message': 'Email send successfully.'})
         except:
             pass

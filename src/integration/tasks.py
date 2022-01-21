@@ -1,10 +1,10 @@
 from __future__ import absolute_import, unicode_literals
 import requests
 from integration.models import Integration
-from bulk_update.helper import bulk_update
 from core import celery_app
 from rest_framework.response import Response
 from dateutil import parser
+from django.utils import timezone
 
 @celery_app.task
 def get_data_from_url():

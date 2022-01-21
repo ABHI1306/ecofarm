@@ -1,4 +1,4 @@
-from __future__ import absolute_import, unicode_literals
+# from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
 from celery.schedules import crontab
@@ -11,7 +11,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'fetching_data' : {
         'task' : 'integration.tasks.get_data_from_url',
-        'schedule' : crontab(minute=0, hour=9),
+        'schedule' : crontab(minute=0, hour=4),
     }
 }
 
